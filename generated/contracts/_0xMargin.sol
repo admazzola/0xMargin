@@ -104,7 +104,17 @@ abstract contract ApproveAndCallFallBack {
   }
   
   
+ interface IFlashLoanReceiver {
+  function executeOperation(
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    uint256[] calldata premiums,
+    address initiator,
+    bytes calldata params
+  ) external returns (bool);
+
   
+}
   
 /**
  * 
@@ -419,6 +429,59 @@ Need to calculate interest due !
 
       return amount * multiplier_pct / 100;
     }
+
+
+
+ 
+
+   /**
+   * @dev Allows smartcontracts to access the liquidity of the pool within one transaction,
+   * as long as the amount taken plus a fee is returned.
+   * IMPORTANT There are security concerns for developers of flashloan receiver contracts that must be kept into consideration.
+   * For further details please visit https://developers.aave.com
+   * @param receiverAddress The address of the contract receiving the funds, implementing the IFlashLoanReceiver interface
+   * @param amount The amounts amounts being flash-borrowed
+   * @param params Variadic packed params to pass to the receiver as extra information
+   **/
+
+   
+  function flashLoan(
+    address receiverAddress, 
+    uint256  calldata amount, 
+    bytes calldata params 
+  ) external  {
+
+
+      IERC20(_stakeableCurrency).transfer(
+          receiverAddress,
+          amount
+        ); 
+
+      require(
+      IFlashLoanReceiver(receiverAddress).executeOperation([_stakeableCurrency], [amount], [0], msg.sender, params),
+      "Flash Loan Failed");
+
+
+      IERC20(_stakeableCurrency).transferFrom(
+          receiverAddress,
+          address(this),
+          amount
+        ); 
+
+
+     /* emit FlashLoan(
+        receiverAddress,
+        msg.sender,
+        vars.currentAsset,
+        vars.currentAmount,
+        vars.currentPremium,
+        referralCode
+      );*/
+
+
+
+    }
+  }
 
 
  
