@@ -109,7 +109,7 @@ abstract contract ApproveAndCallFallBack {
 /**
  * 
  * 
- *  Staking contract that supports community-extractable donations 
+ *   
  *
  */
 contract _0xMargin is 
@@ -182,7 +182,7 @@ Need to calculate interest due !
   function unstakeCurrency( uint256 reserveTokenAmount, address currencyToClaim) public returns (bool){
         
      
-      uint256 vaultOutputAmount =  _vaultOutputAmount( reserveTokenAmount, currencyToClaim );
+      uint256 vaultOutputAmount =  _vaultOutputAmount( reserveTokenAmount  );
         
         
       MintableERC20(_reservePoolToken).burn(msg.sender,  reserveTokenAmount ); 
@@ -220,9 +220,9 @@ Need to calculate interest due !
   
   
     //amount of output tokens to give to redeemer
-  function _vaultOutputAmount(   uint256 reserveTokenAmount, address currencyToClaim ) public view returns (uint){
+  function _vaultOutputAmount(   uint256 reserveTokenAmount  ) public view returns (uint){
 
-      uint256 internalVaultBalance = getTotalVaultBalance(); //IERC20(currencyToClaim ).balanceOf(address(this));
+      uint256 internalVaultBalance = getTotalVaultBalance();  
       
 
       uint256 totalReserveTokens = IERC20(_reservePoolToken).totalSupply();
@@ -347,11 +347,13 @@ Need to calculate interest due !
  
 
     //reclaim the collateral 
-    function closeLoan(uint256 loanId, uint256 amount) public returns (bool){
+    function closeLoan(uint256 loanId ) public returns (bool){
       address from = msg.sender;
       require(loans[loanId].borrower == from);   
       require(loanIsRepaid(loanId));
-     // require(depositedCollateral[from] > 0);
+      
+
+      require(loans[loanId].depositedCollateral > 0);
 
       //withdraw collateral 
       IERC20(_stakeableCurrency).transfer(from, loans[loanId].depositedCollateral);
@@ -365,10 +367,10 @@ Need to calculate interest due !
 
     //TODO 
     //this can be called if the borrowed+interest gets dangerously close to the collateral 
-    function _liquidateLoan(address borrower) internal returns (bool){
+    function _liquidateLoan(uint256 loanId ) internal returns (bool){
      // IERC20(_stakeableCurrency).transferFrom(from, address(this),amount);
 
-     require(loanCanBeLiquidated(borrower));
+     require(loanCanBeLiquidated(loanId));
 
 
 
@@ -387,7 +389,7 @@ Need to calculate interest due !
 
 
 
-    function calculateLoanInterest(uint256 loanId) public returns (uint256) {
+    function calculateLoanInterest(uint256 loanId) public view returns (uint256) {
       //IMPLEMENT
         return 0 ;
     }
